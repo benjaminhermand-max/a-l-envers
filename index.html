@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>À l'envers — studio de mots retournés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E7E4DB;
+  --panel:#F3F1EA;
+  --ink:#1D1C1A;
+  --muted:#6B675E;
+  --line:#CFCBBE;
+  --rec:#C13A22;
+  --rev:#2E6A62;
+  --gold:#B98C22;
+  --shadow:rgba(29,28,26,.14);
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151619;
+    --panel:#1E2025;
+    --ink:#E9E7E1;
+    --muted:#9B978D;
+    --line:#33363D;
+    --rec:#E4593D;
+    --rev:#54AEA0;
+    --gold:#D6AC46;
+    --shadow:rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151619;
+  --panel:#1E2025;
+  --ink:#E9E7E1;
+  --muted:#9B978D;
+  --line:#33363D;
+  --rec:#E4593D;
+  --rev:#54AEA0;
+  --gold:#D6AC46;
+  --shadow:rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{
+  max-width:680px;margin:0 auto;
+  padding:28px 18px calc(64px + env(safe-area-inset-bottom,0px));
+}
+
+/* ---------- en-tête ---------- */
+header{margin-bottom:26px}
+h1{
+  font-family:var(--display);
+  font-weight:800;
+  font-size:clamp(2.4rem,11vw,3.6rem);
+  line-height:.95;
+  letter-spacing:-.03em;
+  margin:0 0 10px;
+}
+h1 .mirror{display:inline-block;transform:scaleX(-1);color:var(--rev)}
+header p{margin:0;color:var(--muted);max-width:44ch}
+
+/* ---------- studio ---------- */
+.studio{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:22px 18px;
+  box-shadow:0 1px 0 var(--line);
+}
+.rec-row{display:flex;flex-direction:column;align-items:center;gap:12px}
+.rec-btn{
+  --p:0;
+  width:128px;height:128px;border-radius:50%;
+  border:none;cursor:pointer;padding:0;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  background:
+    conic-gradient(var(--gold) calc(var(--p)*1%), transparent 0),
+    var(--panel);
+  display:grid;place-items:center;
+  position:relative;
+  transition:transform .12s ease;
+}
+.rec-btn::after{
+  content:"";position:absolute;inset:6px;border-radius:50%;
+  background:var(--rec);
+  box-shadow:0 6px 18px -6px var(--shadow);
+  transition:border-radius .2s ease, inset .2s ease;
+}
+.rec-btn:not(.on){box-shadow:inset 0 0 0 2px var(--line)}
+.rec-btn.on::after{inset:26px;border-radius:6px}
+.rec-btn:active{transform:scale(.97)}
+.rec-btn:focus-visible{outline:3px solid var(--rev);outline-offset:4px}
+.rec-label{font-family:var(--display);font-weight:600;font-size:1.05rem}
+.rec-hint{color:var(--muted);font-size:.9rem;text-align:center;margin:0}
+
+/* ---------- forme d'onde ---------- */
+.wavebox{position:relative;height:56px;margin:14px 0 4px}
+.wave{
+  display:flex;align-items:center;gap:1px;height:100%;
+  transition:transform .35s cubic-bezier(.65,0,.35,1);
+}
+.wave.flip{transform:scaleX(-1)}
+.wave i{
+  flex:1 1 0;min-width:1px;border-radius:2px;
+  background:var(--line);
+  height:8%;
+  transition:height .08s linear, background .2s;
+}
+.wave.live i{background:var(--rec)}
+.wave.ready i{background:var(--ink);opacity:.55}
+.cursor{
+  position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;
+  background:var(--gold);left:0;opacity:0;pointer-events:none;
+}
+.cursor.on{opacity:1}
+.mini .wavebox{height:34px;margin:10px 0 2px}
+
+/* ---------- boutons ---------- */
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+button.act{
+  font-family:var(--body);font-size:.95rem;font-weight:600;
+  color:var(--ink);background:transparent;
+  border:1.5px solid var(--line);border-radius:999px;
+  padding:0 17px;min-height:46px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .15s, background .15s, color .15s, transform .1s;
+}
+button.act:focus-visible{outline:3px solid var(--rev);outline-offset:2px}
+button.act[disabled]{opacity:.4;cursor:default}
+button.act.rev{color:var(--rev);border-color:var(--rev)}
+button.act.solid{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button.act.danger{color:var(--rec);border-color:transparent}
+button.act.recording{color:var(--rec);border-color:var(--rec)}
+button.act:active{transform:scale(.97)}
+@media (hover:hover){
+  button.act:hover{border-color:var(--ink)}
+  button.act.rev:hover{background:var(--rev);color:var(--panel)}
+  button.act.solid:hover{opacity:.88}
+  button.act.danger:hover{border-color:var(--rec)}
+}
+.glyph{font-size:.8em;letter-spacing:-.05em}
+
+/* ---------- nommage ---------- */
+.name-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+input[type=text]{
+  flex:1 1 180px;min-width:0;
+  font-family:var(--display);font-weight:600;font-size:1.1rem;
+  color:var(--ink);background:transparent;
+  border:none;border-bottom:2px solid var(--line);
+  padding:6px 2px;
+}
+input[type=text]::placeholder{color:var(--muted);font-weight:400}
+input[type=text]:focus{outline:none;border-bottom-color:var(--rev)}
+
+/* ---------- collection ---------- */
+.collection{margin-top:34px}
+.collection h2{
+  font-family:var(--display);font-weight:600;font-size:1.15rem;
+  margin:0 0 4px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+}
+.count{font-family:var(--body);font-size:.85rem;color:var(--muted);font-weight:400}
+.empty{color:var(--muted);border:1.5px dashed var(--line);border-radius:16px;padding:20px;margin-top:12px}
+.empty p{margin:0}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px 16px 16px;
+  margin-top:12px;
+}
+.card h3{
+  font-family:var(--display);font-weight:800;font-size:1.45rem;
+  letter-spacing:-.02em;margin:0;
+  overflow-wrap:anywhere;
+}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.spelled{color:var(--muted);font-size:.82rem;letter-spacing:.06em}
+.train{
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+}
+.train.hidden{display:none}
+.step{color:var(--muted);font-size:.88rem;margin:0 0 8px}
+.verdict{
+  margin-top:12px;padding:10px 12px;border-radius:12px;
+  background:color-mix(in srgb, var(--rev) 12%, transparent);
+  color:var(--ink);font-size:.9rem;
+}
+.err{
+  margin-top:14px;border-radius:12px;padding:12px 14px;
+  background:color-mix(in srgb, var(--rec) 14%, transparent);
+  color:var(--ink);font-size:.9rem;
+}
+.err.hidden{display:none}
+footer{margin-top:40px;color:var(--muted);font-size:.82rem}
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:.01ms !important;animation-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>À l'en<span class="mirror">v</span>ers</h1>
+  <p>Enregistre un mot, écoute-le retourné, puis entraîne-toi à le prononcer à l'envers. Si ton essai inversé redonne le mot, c'est gagné.</p>
+</header>
+
+<section class="studio" id="studio">
+  <div class="rec-row">
+    <button class="rec-btn" id="recBtn" aria-label="Enregistrer un mot"></button>
+    <span class="rec-label" id="recLabel">Enregistrer un mot</span>
+    <p class="rec-hint" id="recHint">Appuie, prononce un mot, appuie encore. 5 secondes maximum.</p>
+  </div>
+
+  <div id="preview" style="display:none">
+    <div class="wavebox">
+      <div class="wave ready" id="pvWave"></div>
+      <div class="cursor" id="pvCursor"></div>
+    </div>
+    <div class="btns">
+      <button class="act" id="pvPlay"><span class="glyph">▶</span> Écouter</button>
+      <button class="act rev" id="pvRev"><span class="glyph">◀</span> À l'envers</button>
+      <button class="act danger" id="pvDrop">Jeter</button>
+    </div>
+    <div class="name-row">
+      <input type="text" id="pvName" placeholder="Quel mot as-tu dit ?" maxlength="40" autocomplete="off">
+      <button class="act solid" id="pvSave">Garder</button>
+    </div>
+  </div>
+
+  <div class="wavebox" id="liveBox" style="display:none">
+    <div class="wave live" id="liveWave"></div>
+  </div>
+
+  <div class="err hidden" id="err"></div>
+</section>
+
+<section class="collection">
+  <h2>Mes mots <span class="count" id="count"></span></h2>
+  <div class="empty" id="empty">
+    <p>Rien encore. Commence par un mot court et net — « bonjour », « chocolat », ton prénom.</p>
+  </div>
+  <div id="list"></div>
+</section>
+
+<footer>Tout reste sur cet appareil, dans ce navigateur. Rien n'est envoyé nulle part.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const MAX_MS = 5000;
+const BARS = 72;
+
+/* ============ IndexedDB ============ */
+const DB_NAME = "a-l-envers", STORE = "mots";
+let dbp = null;
+function db(){
+  if(dbp) return dbp;
+  dbp = new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => {
+      if(!r.result.objectStoreNames.contains(STORE))
+        r.result.createObjectStore(STORE, {keyPath:"id", autoIncrement:true});
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+  return dbp;
+}
+async function tx(mode, fn){
+  const d = await db();
+  return new Promise((res, rej) => {
+    const t = d.transaction(STORE, mode);
+    const req = fn(t.objectStore(STORE));
+    t.onerror = () => rej(t.error);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+const dbAll = () => tx("readonly", s => s.getAll());
+const dbAdd = o => tx("readwrite", s => s.add(o));
+const dbPut = o => tx("readwrite", s => s.put(o));
+const dbDel = id => tx("readwrite", s => s.delete(id));
+
+/* ============ audio ============ */
+let actx = null;
+function ctx(){
+  if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if(actx.state === "suspended") actx.resume();
+  return actx;
+}
+// iOS : sans ça, la lecture après un enregistrement sort par l'écouteur
+// (volume minuscule) ou reste muette quand le mode silencieux est actif.
+function session(type){
+  try{ if(navigator.audioSession) navigator.audioSession.type = type; }catch(e){}
+}
+function pickMime(){
+  const list = ["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg;codecs=opus",""];
+  for(const m of list){
+    if(m === "") return "";
+    if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+  }
+  return "";
+}
+function trim(buf){
+  const th = 0.018, ch = buf.getChannelData(0);
+  let a = 0, b = ch.length - 1;
+  while(a < ch.length && Math.abs(ch[a]) < th) a++;
+  while(b > a && Math.abs(ch[b]) < th) b--;
+  if(b - a < buf.sampleRate * 0.08){ a = 0; b = ch.length - 1; }
+  const pad = Math.floor(buf.sampleRate * 0.05);
+  a = Math.max(0, a - pad); b = Math.min(buf.length - 1, b + pad);
+  const len = b - a + 1;
+  const out = ctx().createBuffer(buf.numberOfChannels, len, buf.sampleRate);
+  for(let c = 0; c < buf.numberOfChannels; c++)
+    out.getChannelData(c).set(buf.getChannelData(c).subarray(a, b + 1));
+  return out;
+}
+function reverse(buf){
+  const out = ctx().createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
+  for(let c = 0; c < buf.numberOfChannels; c++){
+    const src = buf.getChannelData(c), dst = out.getChannelData(c);
+    for(let i = 0, j = src.length - 1; i < src.length; i++, j--) dst[i] = src[j];
+  }
+  return out;
+}
+function peaks(buf, n){
+  const ch = buf.getChannelData(0), step = Math.max(1, Math.floor(ch.length / n));
+  const out = [];
+  let max = 0.0001;
+  for(let i = 0; i < n; i++){
+    let sum = 0, c = 0;
+    for(let j = i * step; j < (i + 1) * step && j < ch.length; j++){ sum += ch[j] * ch[j]; c++; }
+    const v = c ? Math.sqrt(sum / c) : 0;
+    if(v > max) max = v;
+    out.push(v);
+  }
+  return out.map(v => Math.round((v / max) * 100) / 100);
+}
+
+const cache = new Map(); // key -> {fwd, rev}
+async function buffers(key, blob){
+  if(cache.has(key)) return cache.get(key);
+  const arr = await blob.arrayBuffer();
+  const raw = await ctx().decodeAudioData(arr);
+  const fwd = trim(raw);
+  const obj = {fwd, rev: reverse(fwd)};
+  cache.set(key, obj);
+  return obj;
+}
+
+/* ============ lecture ============ */
+let current = null;
+function stopAll(){
+  if(current){
+    try{ current.src.onended = null; current.src.stop(); }catch(e){}
+    if(current.raf) cancelAnimationFrame(current.raf);
+    current.cursor.classList.remove("on");
+    current.wave.classList.remove("flip");
+    if(current.onEnd) current.onEnd();
+    current = null;
+  }
+}
+async function play(key, blob, rev, waveEl, cursorEl, onEnd){
+  stopAll();
+  session("playback");
+  let b;
+  try{ b = await buffers(key, blob); }
+  catch(e){ showErr("Impossible de relire cet enregistrement."); return; }
+  const buf = rev ? b.rev : b.fwd;
+  const src = ctx().createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx().destination);
+  waveEl.classList.toggle("flip", !!rev);
+  cursorEl.classList.add("on");
+  const t0 = ctx().currentTime;
+  const st = {src, wave: waveEl, cursor: cursorEl, raf: 0, onEnd};
+  current = st;
+  src.onended = () => { if(current === st) stopAll(); };
+  src.start();
+  (function tick(){
+    if(current !== st) return;
+    const p = Math.min(1, (ctx().currentTime - t0) / buf.duration);
+    cursorEl.style.left = (p * 100) + "%";
+    st.raf = requestAnimationFrame(tick);
+  })();
+}
+
+/* ============ rendu des barres ============ */
+function fillWave(el, vals){
+  el.innerHTML = "";
+  for(let i = 0; i < BARS; i++){
+    const bar = document.createElement("i");
+    const v = vals ? (vals[i] || 0) : 0;
+    bar.style.height = (8 + v * 84) + "%";
+    el.appendChild(bar);
+  }
+}
+
+/* ============ enregistrement ============ */
+const recBtn = document.getElementById("recBtn");
+const recLabel = document.getElementById("recLabel");
+const recHint = document.getElementById("recHint");
+const liveBox = document.getElementById("liveBox");
+const liveWave = document.getElementById("liveWave");
+const errBox = document.getElementById("err");
+
+let rec = {active:false, mr:null, stream:null, chunks:[], mode:null, target:null, timer:0, raf:0, btn:null};
+
+function showErr(msg, offerTab){
+  errBox.textContent = msg;
+  if(offerTab && /^https?:$/.test(location.protocol)){
+    errBox.appendChild(document.createElement("br"));
+    const b = document.createElement("button");
+    b.className = "act";
+    b.style.marginTop = "10px";
+    b.textContent = "Ouvrir dans un onglet";
+    b.addEventListener("click", () => {
+      const w = window.open(location.href, "_blank", "noopener");
+      if(!w) b.textContent = "Bloqué — copie l'adresse de la page";
+    });
+    errBox.appendChild(b);
+  }
+  errBox.classList.remove("hidden");
+}
+function micDiag(e){
+  const name = (e && e.name) || "";
+  const framed = window.self !== window.top;
+  let policy = null;
+  try{
+    const fp = document.permissionsPolicy || document.featurePolicy;
+    if(fp && fp.allowsFeature) policy = fp.allowsFeature("microphone");
+  }catch(_){}
+  if(!window.isSecureContext)
+    return ["La page n'est pas servie en https. Les navigateurs interdisent le micro dans ce cas.", false];
+  if(name === "NotFoundError" || name === "OverconstrainedError")
+    return ["Aucun micro détecté sur cet appareil.", false];
+  if(name === "NotReadableError")
+    return ["Le micro est occupé par une autre application (appel, visio, dictaphone). Ferme-la et réessaie.", false];
+  if(policy === false)
+    return ["Le cadre qui affiche cette page ne transmet pas l'autorisation du micro. Ouvre-la dans un onglet à part.", true];
+  if(name === "NotAllowedError" && framed)
+    return ["Refus du micro. Soit tu as répondu non à la demande du navigateur, soit le cadre qui affiche la page bloque le micro. Ouvre-la dans un onglet pour trancher.", true];
+  if(name === "NotAllowedError")
+    return ["Le micro a été refusé pour ce site. Touche l'icône à gauche de l'adresse (ou Réglages du navigateur) pour réautoriser, puis recharge.", false];
+  return ["Le micro n'a pas pu démarrer (" + (name || "erreur inconnue") + ").", framed];
+}
+function clearErr(){ errBox.classList.add("hidden"); }
+
+async function startRec(mode, target, btn){
+  if(rec.active){ stopRec(); return; }
+  clearErr();
+  stopAll();
+  let stream;
+  session("play-and-record");
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:true, autoGainControl:true}});
+  }catch(e){
+    const d = micDiag(e);
+    showErr(d[0], d[1]);
+    return;
+  }
+  const mime = pickMime();
+  let mr;
+  try{ mr = new MediaRecorder(stream, mime ? {mimeType:mime} : undefined); }
+  catch(e){ stream.getTracks().forEach(t=>t.stop()); showErr("Ce navigateur ne sait pas enregistrer de son."); return; }
+
+  rec = {active:true, mr, stream, chunks:[], mode, target, timer:0, raf:0, btn};
+  mr.ondataavailable = e => { if(e.data.size) rec.chunks.push(e.data); };
+  mr.onstop = onRecStop;
+  mr.start();
+
+  // visuel live
+  const an = ctx().createAnalyser();
+  an.fftSize = 1024;
+  ctx().createMediaStreamSource(stream).connect(an);
+  const data = new Uint8Array(an.fftSize);
+  const live = new Array(BARS).fill(0);
+  fillWave(liveWave, live);
+  if(mode === "new"){ liveBox.style.display = "block"; document.getElementById("preview").style.display = "none"; }
+  const t0 = performance.now();
+  (function tick(){
+    if(!rec.active) return;
+    an.getByteTimeDomainData(data);
+    let sum = 0;
+    for(let i = 0; i < data.length; i++){ const v = (data[i] - 128) / 128; sum += v * v; }
+    const rms = Math.min(1, Math.sqrt(sum / data.length) * 3.2);
+    const el = performance.now() - t0;
+    const idx = Math.min(BARS - 1, Math.floor(el / MAX_MS * BARS));
+    live[idx] = Math.max(live[idx], rms);
+    if(liveWave.children[idx]) liveWave.children[idx].style.height = (8 + live[idx] * 84) + "%";
+    recBtn.style.setProperty("--p", Math.min(100, el / MAX_MS * 100));
+    if(el >= MAX_MS){ stopRec(); return; }
+    rec.raf = requestAnimationFrame(tick);
+  })();
+
+  setUIRecording(true);
+}
+function stopRec(){
+  if(!rec.active) return;
+  rec.active = false;
+  if(rec.raf) cancelAnimationFrame(rec.raf);
+  try{ rec.mr.stop(); }catch(e){}
+}
+async function onRecStop(){
+  rec.stream.getTracks().forEach(t => t.stop());
+  session("playback");
+  const blob = new Blob(rec.chunks, {type: rec.mr.mimeType || "audio/webm"});
+  setUIRecording(false);
+  recBtn.style.setProperty("--p", 0);
+  liveBox.style.display = "none";
+  if(blob.size < 900){ showErr("Trop court — rien n'a été capté. Réessaie en parlant juste après l'appui."); return; }
+
+  if(rec.mode === "new"){
+    pending = {blob};
+    cache.delete("pending");
+    let b;
+    try{ b = await buffers("pending", blob); }
+    catch(e){ showErr("Le son n'a pas pu être lu par le navigateur."); return; }
+    pending.peaks = peaks(b.fwd, BARS);
+    const pv = document.getElementById("preview");
+    pv.style.display = "block";
+    fillWave(document.getElementById("pvWave"), pending.peaks);
+    document.getElementById("pvName").value = "";
+    document.getElementById("pvName").focus();
+  }else{
+    const id = rec.target;
+    const item = items.find(i => i.id === id);
+    if(!item) return;
+    item.essai = blob;
+    cache.delete("e" + id);
+    try{
+      const b = await buffers("e" + id, blob);
+      item.essaiPeaks = peaks(b.fwd, BARS);
+    }catch(e){ item.essaiPeaks = null; }
+    await dbPut(item);
+    render(id);
+  }
+}
+function setUIRecording(on){
+  if(rec.mode === "new" || !on){
+    recBtn.classList.toggle("on", on && rec.mode === "new");
+    recLabel.textContent = (on && rec.mode === "new") ? "J'écoute… appuie pour arrêter" : "Enregistrer un mot";
+  }
+  if(rec.btn){
+    rec.btn.classList.toggle("recording", on);
+    rec.btn.innerHTML = on ? "<span class='glyph'>■</span> Arrêter" : rec.btn.dataset.label;
+  }
+  if(!on) rec.btn = null;
+}
+
+recBtn.addEventListener("click", () => {
+  if(rec.active && rec.mode === "new") stopRec();
+  else if(rec.active) stopRec();
+  else startRec("new", null, null);
+});
+
+/* ============ aperçu ============ */
+let pending = null;
+document.getElementById("pvPlay").addEventListener("click", () =>
+  play("pending", pending.blob, false, document.getElementById("pvWave"), document.getElementById("pvCursor")));
+document.getElementById("pvRev").addEventListener("click", () =>
+  play("pending", pending.blob, true, document.getElementById("pvWave"), document.getElementById("pvCursor")));
+document.getElementById("pvDrop").addEventListener("click", () => {
+  stopAll(); pending = null; cache.delete("pending");
+  document.getElementById("preview").style.display = "none";
+});
+document.getElementById("pvSave").addEventListener("click", save);
+document.getElementById("pvName").addEventListener("keydown", e => { if(e.key === "Enter") save(); });
+
+async function save(){
+  if(!pending) return;
+  const nom = document.getElementById("pvName").value.trim();
+  if(!nom){ document.getElementById("pvName").focus(); showErr("Écris le mot avant de le garder."); return; }
+  clearErr(); stopAll();
+  const o = {nom, blob: pending.blob, peaks: pending.peaks, essai: null, essaiPeaks: null, date: Date.now()};
+  const id = await dbAdd(o);
+  o.id = id;
+  cache.set(id, cache.get("pending"));
+  cache.delete("pending");
+  items.unshift(o);
+  pending = null;
+  document.getElementById("preview").style.display = "none";
+  render(id);
+}
+
+/* ============ liste ============ */
+let items = [];
+const listEl = document.getElementById("list");
+const emptyEl = document.getElementById("empty");
+const countEl = document.getElementById("count");
+let openId = null;
+
+function render(focusId){
+  emptyEl.style.display = items.length ? "none" : "block";
+  countEl.textContent = items.length ? items.length + (items.length > 1 ? " mots" : " mot") : "";
+  listEl.innerHTML = "";
+  items.forEach(it => listEl.appendChild(card(it)));
+  if(focusId){
+    const el = listEl.querySelector('[data-id="' + focusId + '"]');
+    if(el) el.scrollIntoView({block:"nearest", behavior:"smooth"});
+  }
+}
+
+function card(it){
+  const c = document.createElement("article");
+  c.className = "card mini";
+  c.dataset.id = it.id;
+
+  const top = document.createElement("div");
+  top.className = "top";
+  const h = document.createElement("h3");
+  h.textContent = it.nom;
+  const sp = document.createElement("span");
+  sp.className = "spelled";
+  sp.textContent = it.nom.split("").reverse().join("");
+  top.append(h, sp);
+  c.appendChild(top);
+
+  const box = document.createElement("div");
+  box.className = "wavebox";
+  const w = document.createElement("div");
+  w.className = "wave ready";
+  fillWave(w, it.peaks);
+  const cur = document.createElement("div");
+  cur.className = "cursor";
+  box.append(w, cur);
+  c.appendChild(box);
+
+  const btns = document.createElement("div");
+  btns.className = "btns";
+  btns.append(
+    mk("<span class='glyph'>▶</span> Écouter", "act", () => play(it.id, it.blob, false, w, cur)),
+    mk("<span class='glyph'>◀</span> À l'envers", "act rev", () => play(it.id, it.blob, true, w, cur)),
+    mk("M'entraîner", "act", () => {
+      const open = openId !== it.id;
+      openId = open ? it.id : null;
+      render(open ? it.id : null);
+    }),
+    mk("Supprimer", "act danger", async () => {
+      stopAll(); await dbDel(it.id);
+      items = items.filter(x => x.id !== it.id);
+      cache.delete(it.id); cache.delete("e" + it.id);
+      render();
+    })
+  );
+  c.appendChild(btns);
+
+  if(openId === it.id) c.appendChild(trainer(it, w, cur));
+  return c;
+}
+
+function mk(html, cls, fn){
+  const b = document.createElement("button");
+  b.className = cls;
+  b.innerHTML = html;
+  b.dataset.label = html;
+  b.addEventListener("click", fn);
+  return b;
+}
+
+function trainer(it, mainWave, mainCursor){
+  const t = document.createElement("div");
+  t.className = "train";
+
+  const p = document.createElement("p");
+  p.className = "step";
+  p.textContent = "Écoute le mot retourné, répète exactement ce que tu entends, puis inverse ton essai.";
+  t.appendChild(p);
+
+  const box = document.createElement("div");
+  box.className = "wavebox";
+  const w = document.createElement("div");
+  w.className = "wave ready";
+  fillWave(w, it.essaiPeaks);
+  const cur = document.createElement("div");
+  cur.className = "cursor";
+  box.append(w, cur);
+
+  const row = document.createElement("div");
+  row.className = "btns";
+
+  const recEssai = mk(it.essai ? "Refaire mon essai" : "Enregistrer mon essai", "act solid", function(){
+    if(rec.active){ stopRec(); return; }
+    startRec("essai", it.id, recEssai);
+  });
+  row.appendChild(mk("<span class='glyph'>◀</span> Réécouter le modèle", "act rev", () => play(it.id, it.blob, true, mainWave, mainCursor)));
+  row.appendChild(recEssai);
+  t.appendChild(row);
+
+  if(it.essai){
+    t.appendChild(box);
+    const row2 = document.createElement("div");
+    row2.className = "btns";
+    row2.append(
+      mk("<span class='glyph'>▶</span> Mon essai", "act", () => play("e" + it.id, it.essai, false, w, cur)),
+      mk("<span class='glyph'>◀</span> Mon essai inversé", "act rev", () => play("e" + it.id, it.essai, true, w, cur)),
+      mk("<span class='glyph'>▶</span> Le vrai mot", "act", () => play(it.id, it.blob, false, mainWave, mainCursor))
+    );
+    t.appendChild(row2);
+    const v = document.createElement("div");
+    v.className = "verdict";
+    v.textContent = "Compare « mon essai inversé » avec « le vrai mot ». Plus c'est proche, mieux c'est.";
+    t.appendChild(v);
+  }
+  return t;
+}
+
+/* ============ démarrage ============ */
+fillWave(document.getElementById("pvWave"), null);
+if(!navigator.mediaDevices || !window.MediaRecorder){
+  showErr("Ce navigateur ne permet pas l'enregistrement audio. Essaie Chrome, Firefox ou Safari récent.");
+  recBtn.disabled = true;
+}
+dbAll().then(rows => {
+  items = rows.sort((a, b) => b.date - a.date);
+  render();
+}).catch(() => {
+  render();
+  showErr("Le stockage du navigateur est inaccessible : les mots ne seront pas conservés après fermeture.");
+});
+})();
+</script>
+</body>
+</html>
